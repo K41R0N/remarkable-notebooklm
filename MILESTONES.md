@@ -51,6 +51,27 @@ The pipeline is broken into 6 milestones, each independently releasable and test
   skip is correct behaviour for a cron/systemd context, not an error).
   Prevents overlapping scheduled invocations from racing on SQLite writes
   or producing duplicate PDF uploads.
+- [ ] `M1-11` Add `PyYAML>=6.0` to `pyproject.toml` dependencies; add `yaml`
+  to `[[tool.mypy.overrides]]` ignore list
+- [ ] `M1-12` Implement `mapping/models.py` — `MappingEntry` (Pydantic), `MappingsConfig`;
+  validate field types, `responses_folder` default `"responses"`,
+  optional `notebooklm_path` override
+- [ ] `M1-13` Implement `mapping/loader.py` — `load_mappings(path: Path) -> list[MappingEntry]`;
+  `yaml.safe_load` only (never `yaml.load`); return `[]` if file absent;
+  raise `ValidationError` on malformed YAML (hard failure — do not continue silently)
+- [ ] `M1-14` Add `rm_notebook_mappings_file` field + `_expanded` property to `config.py`
+  (follow the `state_db_path` / `state_db_path_expanded` pattern)
+- [ ] `M1-15` Add `list_folders() -> list[RemarkableDocument]` to `remarkable/client.py` —
+  same auth + circuit breaker pattern as `list_documents()`; filters `CollectionType` items
+- [ ] `M1-16` Implement `mapping/resolver.py` — `ResolvedMapping` dataclass,
+  `resolve_mapping_uuids(entry, client)` resolves folder + notebook names to reMarkable UUIDs;
+  raises `ValueError` with actionable message on name mismatch
+- [ ] `M1-17` Wire `notebooklm_nb_id` param into `state/db.py:mark_processed()` —
+  column already in schema, INSERT/UPDATE not yet populating it
+- [ ] `M1-18` Write `docs/notebook-mappings.md` — user-facing YAML schema reference
+  (referenced from `.env.example`)
+- [ ] `M1-19` Tests: `tests/unit/test_mapping_loader.py`, `tests/unit/test_mapping_resolver.py`;
+  extend `tests/unit/test_state_db.py` to cover `notebooklm_nb_id` param
 
 **Tests:**
 - `tests/unit/test_auth.py` — token refresh logic, decorator behavior, error cases
@@ -64,6 +85,10 @@ The pipeline is broken into 6 milestones, each independently releasable and test
 - SHA-256 dedup prevents re-downloading unchanged documents
 - Invoking `rm-notebooklm run` while a previous run is in progress logs
   `"pipeline_already_running"` and exits 0 without side effects
+- `~/.rm_notebooklm/mappings.yaml` with one entry loads and validates without error
+- Missing `mappings.yaml` → `load_mappings()` returns `[]`; malformed YAML → exit 1
+- `list_folders()` returns only `CollectionType` items
+- `mark_processed()` correctly stores `notebooklm_nb_id` in `processed_pages`
 
 ---
 
