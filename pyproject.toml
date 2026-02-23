@@ -130,6 +130,7 @@ ignore = [
 "tests/**" = [
     "ANN001", # test helpers and fixtures don't need arg annotations
     "ANN201", # test functions don't need return annotations
+    "ANN202", # private test helpers don't need return annotations
 ]
 
 [tool.ruff.lint.isort]
