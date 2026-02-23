@@ -88,6 +88,45 @@ class RemarkableClient:
             if item.get("Type") == "DocumentType"
         ]
 
+    @auto_refresh_token(max_retries=1)
+    def list_folders(self) -> list[RemarkableDocument]:
+        """List all collection (folder) items.
+
+        Returns:
+            List of RemarkableDocument instances with type='CollectionType'.
+
+        Raises:
+            AuthenticationError: On 401 (auto-refreshes once then raises).
+        """
+
+        def _call() -> list[dict]:  # type: ignore[type-arg]
+            resp = requests.get(
+                LIST_URL,
+                headers={"Authorization": f"Bearer {self._user_token}"},
+                params={"withBlob": "true"},
+                timeout=30,
+            )
+            if resp.status_code == 401:
+                raise AuthenticationError("User token expired")
+            resp.raise_for_status()
+            return resp.json()  # type: ignore[no-any-return]
+
+        items: list[dict] = remarkable_breaker.call(_call)  # type: ignore[type-arg]
+        return [
+            RemarkableDocument(
+                id=item["ID"],
+                vissible_name=item.get("VissibleName", ""),
+                version=item.get("Version", 0),
+                blob_url_get=item.get("BlobURLGet", ""),
+                parent=item.get("Parent", ""),
+                type=item.get("Type", "CollectionType"),
+                bookmarked=item.get("Bookmarked", False),
+                tags=item.get("Tags", []),
+            )
+            for item in items
+            if item.get("Type") == "CollectionType"
+        ]
+
     def download_zip(self, document: RemarkableDocument, dest_dir: Path) -> Path:
         """Download document ZIP archive to dest_dir.
 

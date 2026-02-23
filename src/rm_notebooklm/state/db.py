@@ -82,6 +82,7 @@ class StateDB:
         notebook_id: str,
         content_hash: str,
         ocr_text: str | None = None,
+        notebooklm_nb_id: str | None = None,
         version: int,
     ) -> None:
         """Insert or update a processed page record.
@@ -91,21 +92,24 @@ class StateDB:
             notebook_id: Parent notebook UUID.
             content_hash: SHA-256 of .rm file bytes.
             ocr_text: Extracted or OCR'd text (None if not yet processed).
+            notebooklm_nb_id: NotebookLM notebook ID for the target project (None if unknown).
             version: reMarkable document version number.
         """
         now = datetime.now(timezone.utc).isoformat()
         with self._connect() as conn:
             conn.execute(
                 """INSERT INTO processed_pages
-                   (page_id, notebook_id, content_hash, ocr_text, processed_at, version)
-                   VALUES (?, ?, ?, ?, ?, ?)
+                   (page_id, notebook_id, content_hash, ocr_text,
+                    notebooklm_nb_id, processed_at, version)
+                   VALUES (?, ?, ?, ?, ?, ?, ?)
                    ON CONFLICT(page_id) DO UPDATE SET
                      content_hash=excluded.content_hash,
                      ocr_text=excluded.ocr_text,
+                     notebooklm_nb_id=excluded.notebooklm_nb_id,
                      processed_at=excluded.processed_at,
                      version=excluded.version
                 """,
-                (page_id, notebook_id, content_hash, ocr_text, now, version),
+                (page_id, notebook_id, content_hash, ocr_text, notebooklm_nb_id, now, version),
             )
 
     def mark_pdf_uploaded(self, page_id: str) -> None:

@@ -91,6 +91,14 @@ class Settings(BaseSettings):
     )
 
     # -----------------------------------------------------------------------
+    # Notebook mappings
+    # -----------------------------------------------------------------------
+    rm_notebook_mappings_file: Path = Field(
+        default=Path("~/.rm_notebooklm/mappings.yaml"),
+        description="Path to YAML mapping reMarkable notebooks to NotebookLM projects",
+    )
+
+    # -----------------------------------------------------------------------
     # Logging
     # -----------------------------------------------------------------------
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
@@ -117,6 +125,11 @@ class Settings(BaseSettings):
     def state_db_path_expanded(self) -> Path:
         """Return state_db_path with ~ expanded."""
         return self.state_db_path.expanduser()
+
+    @property
+    def rm_notebook_mappings_file_expanded(self) -> Path:
+        """Return rm_notebook_mappings_file with ~ expanded."""
+        return self.rm_notebook_mappings_file.expanduser()
 
 
 # Module-level singleton — import this in all other modules.
