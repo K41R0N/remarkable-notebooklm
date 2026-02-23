@@ -50,7 +50,11 @@ reMarkable folder structure:
 - New page with same text as an old page → processed (different `page_id` = intentional)
 - Safe to run the pipeline as many times as you want
 
-**Trigger:** Manual (`rm-notebooklm run`) today; systemd timer added in M6.
+**Trigger:** The pipeline runs unattended on a schedule (systemd timer or Docker +
+host cron, firing every 5–15 minutes) on an always-on machine. The user's only
+interaction with the system is writing on the reMarkable tablet — no terminal
+required. `rm-notebooklm run` can also be invoked manually during development
+and debugging, but the manual trigger is a convenience, not the operational model.
 
 ---
 
@@ -324,6 +328,19 @@ Run 3: user edits P2 (rewrites the question)
 - **YAML parse failure at startup:** If `mappings.yaml` is malformed, `load_mappings()`
   raises a Pydantic `ValidationError`. This is a hard failure at startup — do not
   silently continue with zero mappings. Log the error and exit 1.
+- **Overlapping scheduled runs:** If the systemd timer fires while a previous `run` is
+  still in progress (slow OCR, large notebook), two processes could race on the same
+  `processed_pages` rows. Mitigated by M1-10 (run-lock via `fcntl.flock`): the second
+  invocation acquires no lock, logs `pipeline_already_running`, and exits 0 cleanly.
+- **First run processes entire notebook history:** A 100-page notebook fires 100 OCR
+  calls and 100 DB writes on first run. Mitigated by the `--max-pages` flag (M6-4)
+  and the `--since` flag to skip pages older than a given date. Users should set
+  `--max-pages 20` for first-run smoke tests.
+- **Google OAuth token refresh in headless environments:** `token.json` (desktop OAuth)
+  expires and cannot be re-authorised interactively on a server. For Paths A and B,
+  use a GCP service account JSON key (`GOOGLE_APPLICATION_CREDENTIALS`) instead of the
+  desktop OAuth flow. Path C (Gemini + `GEMINI_API_KEY`) is fully headless-safe and is
+  the recommended deployment path (see M6-6g: `deployment/headless-credentials.md`).
 
 ### No impact on M1 SyncManager
 
@@ -380,16 +397,19 @@ Step 13 is gated behind M4 and M5 being implemented.
 
 ## When credentials are needed
 
-| Step | What | When |
-|------|------|------|
-| Steps 1–12 | Nothing — all local | Implement now |
-| M2 (parsing) | Nothing | Implement next |
-| M3 (OCR) | `GEMINI_API_KEY` (free tier) | Before M3 testing |
-| M4 (NotebookLM) | `GOOGLE_CREDENTIALS_JSON` + OAuth flow + NotebookLM project IDs | Before M4 testing; see `scripts/setup_google_auth.py` |
-| M5 (upload) | `RM_DEVICE_TOKEN` (one-time via `scripts/register_device.py`) | Before M5 E2E testing |
+| Step | What | When | Headless-safe? |
+|------|------|------|----------------|
+| Steps 1–12 | Nothing — all local | Implement now | ✅ yes |
+| M2 (parsing) | Nothing | Implement next | ✅ yes |
+| M3 (OCR) | `GEMINI_API_KEY` (free tier) | Before M3 testing | ✅ yes (API key only) |
+| M4 Path C (Gemini grounding) | `GEMINI_API_KEY` + `GCS_BUCKET_NAME` | Before M4 testing | ✅ yes — **recommended for servers** |
+| M4 Path B (Enterprise) | `GOOGLE_CREDENTIALS_JSON` (service account) + NotebookLM project IDs | Before M4 testing | ✅ yes, if service account used (not `token.json`) |
+| M4 Path A (unofficial) | `NOTEBOOKLM_AUTH_JSON` cookie file (requires manual browser login every 1–2 weeks) | Prototype only | ❌ no — cookie expires, cannot renew headlessly |
+| M5 (upload) | `RM_DEVICE_TOKEN` (one-time via `scripts/register_device.py`) | Before M5 E2E testing | ✅ yes (long-lived JWT) |
 
 **First credential you need:** `GEMINI_API_KEY` from Google AI Studio (free, instant).
-Run `scripts/setup_google_auth.py` for the Google OAuth well before M4.
+**For server deployment:** Use Path C + `GEMINI_API_KEY` — no OAuth token refresh required.
+Run `scripts/setup_google_auth.py` (desktop OAuth) only if you need Path B and have run `deployment/headless-credentials.md` to convert to a service account.
 
 ---
 
