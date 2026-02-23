@@ -11,16 +11,16 @@ The pipeline is broken into 6 milestones, each independently releasable and test
 **Goal:** Repo is runnable, linted, and CI-green with zero features implemented.
 
 **Issues:**
-- [ ] `M0-1` Initialize `pyproject.toml` with all dependency groups
-- [ ] `M0-2` Configure `ruff`, `mypy`, `pytest` in `pyproject.toml`
-- [ ] `M0-3` Scaffold full folder structure with stub `__init__.py` files
-- [ ] `M0-4` Create `.env.example` with all required variables documented
-- [ ] `M0-5` Create `.gitignore` (venv, .env, token.json, state.db, etc.)
-- [ ] `M0-6` Add GitHub Actions CI workflow (`ci.yml`): lint → type-check → unit tests
-- [ ] `M0-7` Add GitHub Actions release workflow (`release.yml`): build on tag push
-- [ ] `M0-8` Add `ISSUE_TEMPLATE` bug report and feature request templates
-- [ ] `M0-9` Write `scripts/register_device.py` (one-time reMarkable device registration)
-- [ ] `M0-10` Write `scripts/setup_google_auth.py` (Google OAuth desktop flow)
+- [x] `M0-1` Initialize `pyproject.toml` with all dependency groups
+- [x] `M0-2` Configure `ruff`, `mypy`, `pytest` in `pyproject.toml`
+- [x] `M0-3` Scaffold full folder structure with stub `__init__.py` files
+- [x] `M0-4` Create `.env.example` with all required variables documented
+- [x] `M0-5` Create `.gitignore` (venv, .env, token.json, state.db, etc.)
+- [x] `M0-6` Add GitHub Actions CI workflow (`ci.yml`): lint → type-check → unit tests
+- [x] `M0-7` Add GitHub Actions release workflow (`release.yml`): build on tag push
+- [x] `M0-8` Add `ISSUE_TEMPLATE` bug report and feature request templates
+- [x] `M0-9` Write `scripts/register_device.py` (one-time reMarkable device registration)
+- [x] `M0-10` Write `scripts/setup_google_auth.py` (Google OAuth desktop flow)
 
 **Acceptance criteria:**
 - `ruff check src/ tests/` exits 0
@@ -35,42 +35,42 @@ The pipeline is broken into 6 milestones, each independently releasable and test
 **Goal:** Authenticate with reMarkable Cloud, list documents, download ZIPs, extract `.rm` files to disk.
 
 **Issues:**
-- [ ] `M1-1` Implement `config.py` — `pydantic-settings` loading all env vars, validation
-- [ ] `M1-2` Implement `remarkable/auth.py` — device registration POST, user token renewal POST, `auto_refresh_token` decorator
-- [ ] `M1-3` Implement `remarkable/client.py` — `RemarkableClient.list_documents()`, `download_zip()`, `upload_zip()`
-- [ ] `M1-4` Implement `remarkable/sync.py` — incremental sync loop, skip already-processed hashes
-- [ ] `M1-5` Implement `utils/hashing.py` — SHA-256 hash of `.rm` file bytes
-- [ ] `M1-6` Implement `utils/retry.py` — `tenacity` decorators + `pybreaker` circuit breaker
-- [ ] `M1-7` Implement `utils/logging.py` — `structlog` JSON setup with context binding
-- [ ] `M1-8` Implement `state/db.py` — SQLite init, `is_processed()`, `mark_processed()`, `processed_pages` schema
-- [ ] `M1-9` Add CLI command `rm-notebooklm sync` (list + download only)
-- [ ] `M1-10` Implement run-lock in `state/lock.py` — acquire an exclusive
+- [x] `M1-1` Implement `config.py` — `pydantic-settings` loading all env vars, validation
+- [x] `M1-2` Implement `remarkable/auth.py` — device registration POST, user token renewal POST, `auto_refresh_token` decorator
+- [x] `M1-3` Implement `remarkable/client.py` — `RemarkableClient.list_documents()`, `download_zip()`, `upload_zip()`
+- [x] `M1-4` Implement `remarkable/sync.py` — incremental sync loop, skip already-processed hashes
+- [x] `M1-5` Implement `utils/hashing.py` — SHA-256 hash of `.rm` file bytes
+- [x] `M1-6` Implement `utils/retry.py` — `tenacity` decorators + `pybreaker` circuit breaker
+- [x] `M1-7` Implement `utils/logging.py` — `structlog` JSON setup with context binding
+- [x] `M1-8` Implement `state/db.py` — SQLite init, `is_processed()`, `mark_processed()`, `processed_pages` schema
+- [x] `M1-9` Add CLI command `rm-notebooklm sync` (list + download only)
+- [x] `M1-10` Implement run-lock in `state/lock.py` — acquire an exclusive
   file lock (`fcntl.flock` on POSIX) at the start of `rm-notebooklm run`,
   release on exit or exception. If lock is already held (previous run still
   executing), log `"pipeline_already_running"` and **exit 0** (not 1 — a
   skip is correct behaviour for a cron/systemd context, not an error).
   Prevents overlapping scheduled invocations from racing on SQLite writes
   or producing duplicate PDF uploads.
-- [ ] `M1-11` Add `PyYAML>=6.0` to `pyproject.toml` dependencies; add `yaml`
+- [x] `M1-11` Add `PyYAML>=6.0` to `pyproject.toml` dependencies; add `yaml`
   to `[[tool.mypy.overrides]]` ignore list
-- [ ] `M1-12` Implement `mapping/models.py` — `MappingEntry` (Pydantic), `MappingsConfig`;
+- [x] `M1-12` Implement `mapping/models.py` — `MappingEntry` (Pydantic), `MappingsConfig`;
   validate field types, `responses_folder` default `"responses"`,
   optional `notebooklm_path` override
-- [ ] `M1-13` Implement `mapping/loader.py` — `load_mappings(path: Path) -> list[MappingEntry]`;
+- [x] `M1-13` Implement `mapping/loader.py` — `load_mappings(path: Path) -> list[MappingEntry]`;
   `yaml.safe_load` only (never `yaml.load`); return `[]` if file absent;
   raise `ValidationError` on malformed YAML (hard failure — do not continue silently)
-- [ ] `M1-14` Add `rm_notebook_mappings_file` field + `_expanded` property to `config.py`
+- [x] `M1-14` Add `rm_notebook_mappings_file` field + `_expanded` property to `config.py`
   (follow the `state_db_path` / `state_db_path_expanded` pattern)
-- [ ] `M1-15` Add `list_folders() -> list[RemarkableDocument]` to `remarkable/client.py` —
+- [x] `M1-15` Add `list_folders() -> list[RemarkableDocument]` to `remarkable/client.py` —
   same auth + circuit breaker pattern as `list_documents()`; filters `CollectionType` items
-- [ ] `M1-16` Implement `mapping/resolver.py` — `ResolvedMapping` dataclass,
+- [x] `M1-16` Implement `mapping/resolver.py` — `ResolvedMapping` dataclass,
   `resolve_mapping_uuids(entry, client)` resolves folder + notebook names to reMarkable UUIDs;
   raises `ValueError` with actionable message on name mismatch
-- [ ] `M1-17` Wire `notebooklm_nb_id` param into `state/db.py:mark_processed()` —
+- [x] `M1-17` Wire `notebooklm_nb_id` param into `state/db.py:mark_processed()` —
   column already in schema, INSERT/UPDATE not yet populating it
-- [ ] `M1-18` Write `docs/notebook-mappings.md` — user-facing YAML schema reference
+- [x] `M1-18` Write `docs/notebook-mappings.md` — user-facing YAML schema reference
   (referenced from `.env.example`)
-- [ ] `M1-19` Tests: `tests/unit/test_mapping_loader.py`, `tests/unit/test_mapping_resolver.py`;
+- [x] `M1-19` Tests: `tests/unit/test_mapping_loader.py`, `tests/unit/test_mapping_resolver.py`;
   extend `tests/unit/test_state_db.py` to cover `notebooklm_nb_id` param
 
 **Tests:**
@@ -97,11 +97,11 @@ The pipeline is broken into 6 milestones, each independently releasable and test
 **Goal:** Parse downloaded `.rm` files, route typed text to direct extraction and handwriting to OCR preprocessing.
 
 **Issues:**
-- [ ] `M2-1` Implement `parsing/rm_parser.py` — `rmscene.read_tree()` wrapper, page type detection (`typed` / `handwriting` / `blank`)
-- [ ] `M2-2` Implement `parsing/extractor.py` — direct text extraction from `RootTextBlock` / `CrdtSequence`
-- [ ] `M2-3` Implement `parsing/preprocessor.py` — PIL pipeline: grayscale convert, crop toolbar+margins, contrast boost, resize ≤1568px, save as PNG
-- [ ] `M2-4` Integrate `rmc` rendering — call `rmc -t svg page.rm` → convert SVG to PNG
-- [ ] `M2-5` Add blank page detection — skip if no `SceneLineItemBlock` and no `RootTextBlock`
+- [x] `M2-1` Implement `parsing/rm_parser.py` — `rmscene.read_tree()` wrapper, page type detection (`typed` / `handwriting` / `blank`)
+- [x] `M2-2` Implement `parsing/extractor.py` — direct text extraction from `RootTextBlock` / `CrdtSequence`
+- [x] `M2-3` Implement `parsing/preprocessor.py` — PIL pipeline: grayscale convert, crop toolbar+margins, contrast boost, resize ≤1568px, save as PNG
+- [x] `M2-4` Integrate `rmc` rendering — call `rmc -t svg page.rm` → convert SVG to PNG
+- [x] `M2-5` Add blank page detection — skip if no `SceneLineItemBlock` and no `RootTextBlock`
 
 **Tests:**
 - `tests/unit/test_rm_parser.py` — fixture `.rm` files from `rmscene` test suite, assert correct routing
