@@ -89,8 +89,8 @@ dev = [
 rm-notebooklm = "rm_notebooklm.cli:app"
 
 [project.urls]
-Homepage = "https://github.com/YOUR_USERNAME/remarkable-notebooklm"
-Issues = "https://github.com/YOUR_USERNAME/remarkable-notebooklm/issues"
+Homepage = "https://github.com/k41r0n/remarkable-notebooklm"
+Issues = "https://github.com/k41r0n/remarkable-notebooklm/issues"
 
 # ---------------------------------------------------------------------------
 # Hatch build config
