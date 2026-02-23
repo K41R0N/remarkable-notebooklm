@@ -1,0 +1,69 @@
+# === Secrets and credentials — NEVER commit these ===
+.env
+credentials.json
+token.json
+*.pem
+*.key
+storage_state.json
+**/storage_state.json
+
+# === reMarkable state ===
+state.db
+*.db
+
+# === Python ===
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.Python
+pip-wheel-metadata/
+*.whl
+
+# === Virtual environments ===
+.venv/
+venv/
+env/
+.env/
+
+# === Testing ===
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+.tox/
+
+# === Type checking ===
+.mypy_cache/
+.dmypy.json
+
+# === Ruff ===
+.ruff_cache/
+
+# === Downloaded reMarkable files (not test fixtures) ===
+downloads/
+*.zip
+# But keep VCR cassettes and test .rm fixtures
+!tests/fixtures/cassettes/
+!tests/fixtures/rm_files/
+!tests/fixtures/expected_text/
+
+# === IDE ===
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# === Logs ===
+*.log
+logs/
+
+# === Hatch build ===
+.hatch/
