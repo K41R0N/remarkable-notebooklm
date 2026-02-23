@@ -293,3 +293,8 @@ reMarkable Cloud
 - Do not commit `.env`, `token.json`, `credentials.json`, or `state.db`
 - Do not assume NotebookLM Enterprise chat works via API — it does not
 - Do not use `rmapy` — mentioned twice because it's the most common mistake
+- Do not deploy Path A (cookie-based `notebooklm-py`) to systemd, Docker, or CI — cookies expire every 1–2 weeks with no automated renewal path; use Path C instead (see `docs/solutions/integration-issues/notebooklm-path-a-cookies-expire-in-scheduled-deployments.md`)
+- Do not skip run-lock (M1-10) before deploying with systemd timers or cron — concurrent runs cause duplicate OCR calls and PDF uploads (see `docs/solutions/runtime-errors/concurrent-sync-runs-deadlock-without-filelock.md`)
+- Do not use desktop OAuth `token.json` on servers — it expires and cannot be renewed headlessly; use Path C (`GEMINI_API_KEY`) or a GCP service account JSON key (see `docs/solutions/security-issues/google-oauth-token-json-incompatible-with-headless-deployments.md`)
+- Do not run `rm-notebooklm run` without `--max-pages` on a fresh install — large notebooks trigger surprise OCR storms and rate limit hits (see `docs/solutions/runtime-errors/first-sync-ocr-rate-limiting-explosion.md`)
+- Do not implement features with interactive prompts or browser automation in the `run` command — the pipeline runs unattended on a server; interactive code belongs in `scripts/` (see `docs/solutions/runtime-errors/scheduled-pipeline-requires-host-not-device.md`)
